@@ -1,0 +1,4 @@
+aiohttp
+aiofiles
+pysqlite3
+flask
