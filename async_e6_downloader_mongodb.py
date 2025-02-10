@@ -65,7 +65,7 @@ async def download_image(session, file_url, file_path, user_agent):
 
 from pymongo import MongoClient
 
-# Connect to MongoDB (local instance) (CHANGE TO YOUR INSTANCE IF NEEDED)
+# Connect to MongoDB (local instance) (CHANGE THIS TO YOUR INSTANCE IF NEEDED)
 client = MongoClient("mongodb://localhost:27017")
 db = client["image_database"]  # Database name
 collection = db["images"]  # Collection for storing posts
