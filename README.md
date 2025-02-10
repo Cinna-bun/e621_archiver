@@ -8,6 +8,8 @@ To install the required dependencies, just run "pip install -r requirements.txt"
 In order to easily download and handle small archives of your favorite tags, or perhaps your favorites list, you can use async_e6_downloader.py
 Please note that if you download massive numbers of files with this, your operating system might not handle browsing the folder very well, and it might crash your computer!
 
+The files will be saved in a folder named after your search tags and will have names which are abbreviations of the tags on the post. If you run find_abbreviations.py you can see what to search in windows file explorer or mac to find your files based on your desired tag queries.
+
 # For mass archiving of data
 In order to download enormous numbers of files, consider using async_e6_downloader_mongodb.py
 
