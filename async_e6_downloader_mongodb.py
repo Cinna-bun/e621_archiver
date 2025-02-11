@@ -67,6 +67,7 @@ from pymongo import MongoClient
 
 # Connect to MongoDB (local instance) (CHANGE THIS TO YOUR INSTANCE IF NEEDED)
 client = MongoClient("mongodb://localhost:27017")
+#client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
 db = client["image_database"]  # Database name
 collection = db["images"]  # Collection for storing posts
 
@@ -78,21 +79,22 @@ def insert_post_to_mongo(post, local_path, fav_tag=None):
         post["favorite_of"] = fav_tag
 
     # Avoid duplicate inserts by checking post ID
-    """existing = collection.find_one({"id": post["id"]})
+    existing = collection.find_one({"id": post["id"]})
     if existing:
         print(f"Post {post['id']} already exists, skipping insert.")
-        return"""
+        return
 
     collection.insert_one(post)
     print(f"Inserted post {post['id']} into MongoDB.")
     
-def edit_fav_post_mongo(postID, fav_tag):
-    post = collection.find_one({"id": postID})
-    if post is None:
-        print(f"Could not find post {postID} for editing.")
+def edit_fav_post_mongo(post, local_path, fav_tag):
+    fav_post = collection.find_one({"id": post['id']})
+    if fav_post is None:
+        print(f"Could not find post {post['id']} for editing.")
+        insert_post_to_mongo(post, local_path, fav_tag)
         return
     
-    favorite_of = post.get("favorite_of", "")
+    favorite_of = fav_post.get("favorite_of", "")
 
     if fav_tag in favorite_of:
         return
@@ -102,11 +104,11 @@ def edit_fav_post_mongo(postID, fav_tag):
 
     # Correct update query
     collection.update_one(
-        {"id": postID},  # Filter
+        {"id": fav_post['id']},  # Filter
         {"$set": {"favorite_of": updated_favorites}}  # Update operation
     )
     
-    print(f"Edited post {postID} in MongoDB for user {fav_tag}")
+    print(f"Edited post {fav_post['id']} in MongoDB for user {fav_tag}")
 
 def encode_url_component(component):
     return urllib.parse.quote(component, safe='+')
@@ -172,22 +174,22 @@ async def download_images(tags, e6_user_agent, e6_api_key, sender_email="", send
                         # Construct file path
                         file_name = file_url.split("/")[-1]
                         file_path = specific_folder_path / file_name
+                        
+                        #insert_post_to_mongo(post, str(file_path)) # GET RID OF ME
 
                         lowest_id = min(lowest_id, post.get('id'))
                         post_exists = os.path.exists(file_path)
-                        if post_exists and not fav_tag:
-                            continue  # Skip if file exists
-                        elif post_exists and fav_tag:
-                            edit_fav_post_mongo(post.get('id'), fav_tag) # Update the favorite tag of the post
+                        #if post_exists and not fav_tag:
+                            #continue  # Skip if file exists
+                        if post_exists and fav_tag:
+                            edit_fav_post_mongo(post, str(file_path), fav_tag[4:]) # Update the favorite tag of the post
                             continue
-                            
-                        num_downloads += 1
-
-                        # Insert post into MongoDB
-                        if fav_tag:
+                        elif fav_tag:
                             insert_post_to_mongo(post, str(file_path), fav_tag[4:])
                         else:
                             insert_post_to_mongo(post, str(file_path))
+                            
+                        num_downloads += 1
 
                         print(f"Queueing download for {file_name}...")
                         tasks.append(download_image(session, file_url, file_path, user_agent))
