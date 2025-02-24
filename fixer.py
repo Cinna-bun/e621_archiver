@@ -38,10 +38,10 @@ def insert_post_to_mongo(post, local_path, fav_tag=None):
 
 def download_images():
     user_agent = "e6ImageSaver/2.0 (by N_o_p_e on e621)"
-    username = 'N_o_p_e'
-    api_key = 'eAhg2kLZKrbzraJUokFdJUf9'
+    username = 'YOUR_USERNAME_HERE'
+    api_key = 'YOUR_API_KEY_HERE'
     
-    folder_path = Path('/media/misu/Elements/Archive/Mongo_e6_Archive')
+    folder_path = Path('YOUR_PATH_HERE')
     limit = 320
     page = "first"
     tags = "score:>49"
