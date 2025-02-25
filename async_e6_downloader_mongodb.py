@@ -138,6 +138,8 @@ async def download_images(tags, e6_user_agent, e6_api_key, sender_email="", send
     auth_string = f"{username}:{api_key}"
     auth_encoded = base64.b64encode(auth_string.encode()).decode()
     headers = {"Authorization": f"Basic {auth_encoded}", "User-Agent": user_agent}
+    
+    blank_pages = 0
 
     async with aiohttp.ClientSession() as session:
         while True:
@@ -179,8 +181,8 @@ async def download_images(tags, e6_user_agent, e6_api_key, sender_email="", send
 
                         lowest_id = min(lowest_id, post.get('id'))
                         post_exists = os.path.exists(file_path)
-                        #if post_exists and not fav_tag:
-                            #continue  # Skip if file exists
+                        if post_exists and not fav_tag:
+                            continue  # Skip if file exists
                         if post_exists and fav_tag:
                             edit_fav_post_mongo(post, str(file_path), fav_tag[4:]) # Update the favorite tag of the post
                             continue
@@ -194,9 +196,13 @@ async def download_images(tags, e6_user_agent, e6_api_key, sender_email="", send
                         print(f"Queueing download for {file_name}...")
                         tasks.append(download_image(session, file_url, file_path, user_agent))
 
-                    if len(tasks) == 0 and refresh_mode:
+                    if len(tasks) == 0:
                         #print("All files downloaded.")
-                        break
+                        blank_pages += 1
+                        if blank_pages > 10 and refresh_mode:
+                            break
+                    else:
+                        blank_pages = 0
 
                     # Download all images concurrently
                     await asyncio.gather(*tasks)
